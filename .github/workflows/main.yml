@@ -1,0 +1,53 @@
+name: Copy Changed Files
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  copy-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Git
+        run: sudo apt-get install -y git
+
+      - name: Identify changed files
+        id: changed-files
+        run: |
+          git fetch origin main
+          git diff --name-only origin/main...HEAD > changed-files.txt
+          cat changed-files.txt
+
+      - name: Copy changed files
+        run: |
+          mkdir -p target-repo-root
+          while IFS= read -r file; do
+            if [[ -f "target-repo/$file" ]]; then
+              mkdir -p "$(dirname "target-repo-root/$file")"
+              cp "target-repo/$file" "target-repo-root/$file"
+            fi
+          done < changed-files.txt
+
+      - name: Delete target-repo directory
+        run: rm -rf target-repo
+
+      - name: Commit and push changes
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          
+          # Stage all changes including deleted files and untracked files
+          git add -A
+
+          # Commit changes with a message
+          git commit -m "Move changed files from target-repo to root" || echo "No changes to commit"
+
+          # Push changes to the repository using PAT for authentication
+          git push https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }} HEAD:main
