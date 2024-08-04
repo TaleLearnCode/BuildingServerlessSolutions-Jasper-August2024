@@ -37,18 +37,9 @@ jobs:
       - name: Delete target-repo directory
         run: rm -rf target-repo
 
-      - name: Commit and push changes
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          
-          # Stage all changes including deleted files and untracked files
-          git add -A
-
-          # Commit changes with a message
-          git commit -m "Move changed files from target-repo to root" || echo "No changes to commit"
-
-          # Push changes to the repository using PAT for authentication
-          git push https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }} HEAD:main
+      - name: Trigger dispatch workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: ${{ github.repository }}
+          event-type: push_files
