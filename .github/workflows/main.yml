@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   copy-files:
@@ -41,6 +40,12 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add target-repo-root
+          
+          # Stage all changes including deleted files and untracked files
+          git add -A
+
+          # Commit changes with a message
           git commit -m "Move changed files from target-repo to root"
+
+          # Push changes to the repository
           git push origin main
