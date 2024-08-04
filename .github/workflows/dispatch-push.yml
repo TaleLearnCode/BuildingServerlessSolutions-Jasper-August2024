@@ -12,6 +12,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: List files in the repository
+        run: |
+          echo "Files in repository:"
+          ls -R
+
+      - name: Check Git status
+        run: git status
+
       - name: Commit and push changes
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -21,6 +29,9 @@ jobs:
           
           # Stage all changes including deleted files and untracked files
           git add -A
+
+          # Check status again before commit
+          git status
 
           # Commit changes with a message
           git commit -m "Move changed files from target-repo to root" || echo "No changes to commit"
